@@ -1,7 +1,6 @@
 package redis
 
 import (
-	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -80,7 +79,7 @@ func (connector *DbConnector) removeNotifications(notifications []*moira.Schedul
 
 	c.Send("MULTI")
 	for _, notification := range notifications {
-		notificationString, err := json.Marshal(notification)
+		notificationString, err := reply.GetNotificationBytes(*notification)
 		if err != nil {
 			return 0, err
 		}
@@ -117,7 +116,7 @@ func (connector *DbConnector) FetchNotifications(to int64) ([]*moira.ScheduledNo
 
 // AddNotification store notification at given timestamp
 func (connector *DbConnector) AddNotification(notification *moira.ScheduledNotification) error {
-	bytes, err := json.Marshal(notification)
+	bytes, err := reply.GetNotificationBytes(*notification)
 	if err != nil {
 		return err
 	}
@@ -138,7 +137,7 @@ func (connector *DbConnector) AddNotifications(notifications []*moira.ScheduledN
 
 	c.Send("MULTI")
 	for _, notification := range notifications {
-		bytes, err := json.Marshal(notification)
+		bytes, err := reply.GetNotificationBytes(*notification)
 		if err != nil {
 			return err
 		}
