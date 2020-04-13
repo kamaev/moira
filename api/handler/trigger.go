@@ -57,11 +57,17 @@ func updateTrigger(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
+	if response := targetsHandler(trigger.Targets); response != nil {
+		render.Status(request, http.StatusBadRequest)
+		render.JSON(writer, request, response)
+		return
+	}
+
 	if trigger.Desc != nil {
 		triggerData := moira.TriggerData{Desc: *trigger.Desc, Name: trigger.Name}
 		if _, err := triggerData.GetPopulatedDescription(moira.NotificationEvents{}); err != nil {
 			render.Render(writer, request, api.ErrorRender(
-				fmt.Errorf("You have an error in your Go template: %v", err)))
+				fmt.Errorf("you have an error in your Go template: %v", err)))
 			return
 		}
 	}

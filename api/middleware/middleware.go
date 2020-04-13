@@ -19,6 +19,7 @@ var (
 	databaseKey          ContextKey = "database"
 	searcherKey          ContextKey = "searcher"
 	triggerIDKey         ContextKey = "triggerID"
+	triggerTarget        ContextKey = "target"
 	populateKey          ContextKey = "populated"
 	contactIDKey         ContextKey = "contactID"
 	tagKey               ContextKey = "tag"
@@ -47,6 +48,11 @@ func GetLogin(request *http.Request) string {
 // GetTriggerID gets TriggerID string from request context, which was sets in TriggerContext middleware
 func GetTriggerID(request *http.Request) string {
 	return request.Context().Value(triggerIDKey).(string)
+}
+
+// GetTarget gets target string from request context, which was sets in TriggerContext middleware
+func GetTarget(request *http.Request) string {
+	return request.Context().Value(triggerTarget).(string)
 }
 
 // GetPopulated get populate bool from request context, which was sets in TriggerContext middleware

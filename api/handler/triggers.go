@@ -26,6 +26,7 @@ func triggers(metricSourceProvider *metricSource.SourceProvider, searcher moira.
 		router.Use(middleware.SearchIndexContext(searcher))
 		router.Get("/", getAllTriggers)
 		router.Put("/", createTrigger)
+		router.With(middleware.Target()).Get("/target/check", targetCheck)
 		router.Route("/{triggerId}", trigger)
 		router.With(middleware.Paginate(0, 10)).With(middleware.Pager(false, "")).Get("/search", searchTriggers)
 		// ToDo: DEPRECATED method. Remove in Moira 2.6
@@ -63,7 +64,15 @@ func createTrigger(writer http.ResponseWriter, request *http.Request) {
 		}
 		return
 	}
+
+	if response := targetsHandler(trigger.Targets); response != nil {
+		render.Status(request, http.StatusBadRequest)
+		render.JSON(writer, request, response)
+		return
+	}
+
 	timeSeriesNames := middleware.GetTimeSeriesNames(request)
+
 	response, err := controller.CreateTrigger(database, &trigger.TriggerModel, timeSeriesNames)
 	if err != nil {
 		render.Render(writer, request, err)
@@ -74,6 +83,23 @@ func createTrigger(writer http.ResponseWriter, request *http.Request) {
 		render.Render(writer, request, api.ErrorRender(err))
 		return
 	}
+}
+
+func targetCheck(writer http.ResponseWriter, request *http.Request) {
+	target := middleware.GetTarget(request)
+	if target == "" {
+		render.JSON(writer, request, FunctionsOfTarget{SyntaxOk: true})
+		return
+	}
+
+	targetResponse := targetVerification(target)
+	if targetResponse.BadFunctions != nil || !targetResponse.SyntaxOk {
+		render.Status(request, http.StatusBadRequest)
+		render.JSON(writer, request, targetResponse)
+		return
+	}
+
+	render.JSON(writer, request, targetResponse)
 }
 
 func searchTriggers(writer http.ResponseWriter, request *http.Request) {
