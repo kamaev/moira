@@ -913,7 +913,7 @@ func TestHandleTriggerCheck(t *testing.T) {
 	dataBase := mock_moira_alert.NewMockDatabase(mockCtrl)
 	ttlState := moira.TTLStateNODATA
 
-	Convey("Handle trigger was not successful checked and no error", t, func() {
+	Convey("CreateNotification trigger was not successful checked and no error", t, func() {
 		triggerChecker := TriggerChecker{
 			triggerID: "SuperId",
 			database:  dataBase,
@@ -939,7 +939,7 @@ func TestHandleTriggerCheck(t *testing.T) {
 		})
 	})
 
-	Convey("Handle error no metrics", t, func() {
+	Convey("CreateNotification error no metrics", t, func() {
 		Convey("TTL is 0", func() {
 			triggerChecker := TriggerChecker{
 				triggerID: "SuperId",
@@ -1005,7 +1005,7 @@ func TestHandleTriggerCheck(t *testing.T) {
 			So(actual, ShouldResemble, expected)
 		})
 	})
-	Convey("Handle trigger has only wildcards without metrics in last state", t, func() {
+	Convey("CreateNotification trigger has only wildcards without metrics in last state", t, func() {
 		triggerChecker := TriggerChecker{
 			triggerID: "SuperId",
 			database:  dataBase,
@@ -1037,7 +1037,7 @@ func TestHandleTriggerCheck(t *testing.T) {
 		So(actual, ShouldResemble, expected)
 	})
 
-	Convey("Handle trigger has only wildcards with metrics in last state", t, func() {
+	Convey("CreateNotification trigger has only wildcards with metrics in last state", t, func() {
 		triggerChecker := TriggerChecker{
 			triggerID: "SuperId",
 			database:  dataBase,
@@ -1074,7 +1074,7 @@ func TestHandleTriggerCheck(t *testing.T) {
 		So(actual, ShouldResemble, expected)
 	})
 
-	Convey("Handle trigger has only wildcards and ttlState is OK", t, func() {
+	Convey("CreateNotification trigger has only wildcards and ttlState is OK", t, func() {
 		triggerChecker := TriggerChecker{
 			triggerID: "SuperId",
 			database:  dataBase,
@@ -1108,7 +1108,7 @@ func TestHandleTriggerCheck(t *testing.T) {
 		So(actual, ShouldResemble, expected)
 	})
 
-	Convey("Handle trigger has only wildcards and ttlState is DEL", t, func() {
+	Convey("CreateNotification trigger has only wildcards and ttlState is DEL", t, func() {
 		now := time.Now().Unix()
 		triggerChecker := TriggerChecker{
 			triggerID: "SuperId",
@@ -1141,7 +1141,7 @@ func TestHandleTriggerCheck(t *testing.T) {
 		So(actual, ShouldResemble, expected)
 	})
 
-	Convey("Handle unknown function in evalExpr", t, func() {
+	Convey("CreateNotification unknown function in evalExpr", t, func() {
 		triggerChecker := TriggerChecker{
 			triggerID: "SuperId",
 			database:  dataBase,
@@ -1174,7 +1174,7 @@ func TestHandleTriggerCheck(t *testing.T) {
 		So(actual, ShouldResemble, expected)
 	})
 
-	Convey("Handle trigger has same metric names", t, func() {
+	Convey("CreateNotification trigger has same metric names", t, func() {
 		triggerChecker := TriggerChecker{
 			triggerID: "SuperId",
 			database:  dataBase,
@@ -1206,7 +1206,7 @@ func TestHandleTriggerCheck(t *testing.T) {
 		So(actual, ShouldResemble, expected)
 	})
 
-	Convey("Handle trigger error remote trigger response", t, func() {
+	Convey("CreateNotification trigger error remote trigger response", t, func() {
 		now := time.Now()
 		triggerChecker := TriggerChecker{
 			triggerID: "SuperId",
@@ -1258,7 +1258,7 @@ func TestHandleTriggerCheck(t *testing.T) {
 		})
 	})
 
-	Convey("Handle additional trigger target has more than one metric data", t, func() {
+	Convey("CreateNotification additional trigger target has more than one metric data", t, func() {
 		triggerChecker := TriggerChecker{
 			triggerID: "SuperId",
 			database:  dataBase,
