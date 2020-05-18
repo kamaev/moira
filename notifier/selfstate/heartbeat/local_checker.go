@@ -6,14 +6,14 @@ import (
 	"github.com/moira-alert/moira"
 )
 
-type graphiteLocalChecker struct {
+type localChecker struct {
 	heartbeat
 	count int64
 }
 
-func GetGraphiteLocalChecker(delay int64, logger moira.Logger, database moira.Database) Heartbeater {
+func GetLocalChecker(delay int64, logger moira.Logger, database moira.Database) Heartbeater {
 	if delay > 0 {
-		return &graphiteLocalChecker{heartbeat: heartbeat{
+		return &localChecker{heartbeat: heartbeat{
 			logger:              logger,
 			database:            database,
 			delay:               delay,
@@ -23,13 +23,14 @@ func GetGraphiteLocalChecker(delay int64, logger moira.Logger, database moira.Da
 	return nil
 }
 
-func (check *graphiteLocalChecker) Check(nowTS int64) (int64, bool, error) {
-	checksCount, err := check.database.GetChecksUpdatesCount()
+func (check *localChecker) Check(nowTS int64) (int64, bool, error) {
+	triggersCount, err := check.database.GetLocalTriggersToCheckCount()
 	if err != nil {
 		return 0, false, err
 	}
 
-	if check.count != checksCount {
+	checksCount, _ := check.database.GetChecksUpdatesCount()
+	if check.count != checksCount || triggersCount == 0 {
 		check.count = checksCount
 		check.lastSuccessfulCheck = nowTS
 		return 0, false, nil
@@ -43,15 +44,14 @@ func (check *graphiteLocalChecker) Check(nowTS int64) (int64, bool, error) {
 	return 0, false, nil
 }
 
-func (graphiteLocalChecker) NeedToCheckOthers() bool {
+func (localChecker) NeedToCheckOthers() bool {
 	return true
 }
 
-func (check graphiteLocalChecker) NeedTurnOffNotifier() bool {
-	checksCont, _ := check.database.GetLocalTriggersToCheckCount()
-	return checksCont > 0
+func (check localChecker) NeedTurnOffNotifier() bool {
+	return false
 }
 
-func (graphiteLocalChecker) GetErrorMessage() string {
+func (localChecker) GetErrorMessage() string {
 	return "Moira-Checker does not check triggers"
 }

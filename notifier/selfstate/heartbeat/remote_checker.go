@@ -6,14 +6,14 @@ import (
 	"github.com/moira-alert/moira"
 )
 
-type graphiteRemoteChecker struct {
+type remoteChecker struct {
 	heartbeat
 	count int64
 }
 
-func GetGraphiteRemoteChecker(delay int64, logger moira.Logger, database moira.Database) Heartbeater {
+func GetRemoteChecker(delay int64, logger moira.Logger, database moira.Database) Heartbeater {
 	if delay > 0 {
-		return &graphiteRemoteChecker{heartbeat: heartbeat{
+		return &remoteChecker{heartbeat: heartbeat{
 			logger:              logger,
 			database:            database,
 			delay:               delay,
@@ -23,13 +23,14 @@ func GetGraphiteRemoteChecker(delay int64, logger moira.Logger, database moira.D
 	return nil
 }
 
-func (check *graphiteRemoteChecker) Check(nowTS int64) (int64, bool, error) {
-	remoteTriggersCount, err := check.database.GetRemoteChecksUpdatesCount()
+func (check *remoteChecker) Check(nowTS int64) (int64, bool, error) {
+	triggerCount, err := check.database.GetRemoteTriggersToCheckCount()
 	if err != nil {
 		return 0, false, err
 	}
 
-	if check.count != remoteTriggersCount {
+	remoteTriggersCount, _ := check.database.GetRemoteChecksUpdatesCount()
+	if check.count != remoteTriggersCount || triggerCount == 0 {
 		check.count = remoteTriggersCount
 		check.lastSuccessfulCheck = nowTS
 		return 0, false, nil
@@ -42,15 +43,14 @@ func (check *graphiteRemoteChecker) Check(nowTS int64) (int64, bool, error) {
 	return 0, false, nil
 }
 
-func (check graphiteRemoteChecker) NeedTurnOffNotifier() bool {
-	remoteTriggersCount, _ := check.database.GetRemoteTriggersToCheckCount()
-	return remoteTriggersCount > 0
+func (check remoteChecker) NeedTurnOffNotifier() bool {
+	return false
 }
 
-func (graphiteRemoteChecker) NeedToCheckOthers() bool {
+func (remoteChecker) NeedToCheckOthers() bool {
 	return true
 }
 
-func (graphiteRemoteChecker) GetErrorMessage() string {
+func (remoteChecker) GetErrorMessage() string {
 	return "Moira-Remote-Checker does not check remote triggers"
 }

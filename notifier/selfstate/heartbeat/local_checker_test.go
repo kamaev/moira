@@ -15,19 +15,20 @@ import (
 
 func TestCheckDelay_Check(t *testing.T) {
 	Convey("Test local checker heartbeat", t, func() {
-		err := errors.New("test error graphiteLocalChecker")
+		err := errors.New("test error localChecker")
 		now := time.Now().Unix()
 		check := createGraphiteLocalCheckerTest(t)
 		database := check.database.(*mock_moira_alert.MockDatabase)
 
-		Convey("Test creation graphiteLocalChecker", func() {
-			expected := &graphiteLocalChecker{heartbeat: heartbeat{database: check.database, logger: check.logger, delay: 1, lastSuccessfulCheck: now}}
-			So(GetGraphiteLocalChecker(0, check.logger, check.database), ShouldBeNil)
-			So(GetGraphiteLocalChecker(1, check.logger, check.database), ShouldResemble, expected)
+		Convey("Test creation localChecker", func() {
+			expected := &localChecker{heartbeat: heartbeat{database: check.database, logger: check.logger, delay: 1, lastSuccessfulCheck: now}}
+			So(GetLocalChecker(0, check.logger, check.database), ShouldBeNil)
+			So(GetLocalChecker(1, check.logger, check.database), ShouldResemble, expected)
 		})
 
 		Convey("GraphiteLocalChecker error handling test", func() {
-			database.EXPECT().GetChecksUpdatesCount().Return(int64(1), err)
+			database.EXPECT().GetChecksUpdatesCount().Return(int64(1), nil)
+			database.EXPECT().GetLocalTriggersToCheckCount().Return(int64(1), err)
 
 			value, needSend, errActual := check.Check(now)
 			So(errActual, ShouldEqual, err)
@@ -38,6 +39,7 @@ func TestCheckDelay_Check(t *testing.T) {
 		Convey("Test update lastSuccessfulCheck", func() {
 			now += 1000
 			database.EXPECT().GetChecksUpdatesCount().Return(int64(1), nil)
+			database.EXPECT().GetLocalTriggersToCheckCount().Return(int64(1), nil)
 
 			value, needSend, errActual := check.Check(now)
 			So(errActual, ShouldBeNil)
@@ -49,6 +51,7 @@ func TestCheckDelay_Check(t *testing.T) {
 		Convey("Test get notification", func() {
 			check.lastSuccessfulCheck = now - check.delay - 1
 			database.EXPECT().GetChecksUpdatesCount().Return(int64(0), nil)
+			database.EXPECT().GetLocalTriggersToCheckCount().Return(int64(1), nil)
 			database.EXPECT().SetNotifierState(moira.SelfStateERROR)
 
 			value, needSend, errActual := check.Check(now)
@@ -59,6 +62,7 @@ func TestCheckDelay_Check(t *testing.T) {
 
 		Convey("Exit without action", func() {
 			database.EXPECT().GetChecksUpdatesCount().Return(int64(0), nil)
+			database.EXPECT().GetLocalTriggersToCheckCount().Return(int64(1), nil)
 
 			value, needSend, errActual := check.Check(now)
 			So(errActual, ShouldBeNil)
@@ -81,9 +85,9 @@ func TestCheckDelay_Check(t *testing.T) {
 	})
 }
 
-func createGraphiteLocalCheckerTest(t *testing.T) *graphiteLocalChecker {
+func createGraphiteLocalCheckerTest(t *testing.T) *localChecker {
 	mockCtrl := gomock.NewController(t)
 	logger, _ := logging.GetLogger("CheckDelay")
 
-	return GetGraphiteLocalChecker(120, logger, mock_moira_alert.NewMockDatabase(mockCtrl)).(*graphiteLocalChecker)
+	return GetLocalChecker(120, logger, mock_moira_alert.NewMockDatabase(mockCtrl)).(*localChecker)
 }
